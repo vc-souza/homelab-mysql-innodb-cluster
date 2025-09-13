@@ -1,0 +1,24 @@
+[mysqld]
+
+plugin_load_add='group_replication.so'
+
+# node
+server_id = <NODE_ID>
+report_host = <CLUSTER>-mysql-node-<NODE_ID>
+relay_log = <CLUSTER>-mysql-node-<NODE_ID>-relay-bin
+
+# other settings
+transaction_isolation = 'READ-COMMITTED'
+
+# replication settings
+group_replication_group_name = "<REPLICATION_GROUP>"
+group_replication_start_on_boot = ON
+group_replication_bootstrap_group = OFF
+group_replication_recovery_get_public_key = ON
+group_replication_local_address = "<CLUSTER>-mysql-node-<NODE_ID>:33061"
+group_replication_group_seeds = "<CLUSTER>-mysql-node-1:33061,<CLUSTER>-mysql-node-2:33061,<CLUSTER>-mysql-node-3:33061"
+
+# replication requirements
+gtid_mode = ON
+enforce_gtid_consistency = ON
+disabled_storage_engines = "MyISAM,BLACKHOLE,FEDERATED,ARCHIVE,MEMORY"

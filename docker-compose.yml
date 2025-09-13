@@ -1,0 +1,84 @@
+x-common-services:
+  mysql-node: &mysql-node
+    image: mysql:8.4.5
+
+x-volumes:
+  data: &vol-data
+    driver: local
+
+name: ${CLUSTER_ID:?error}
+
+services:
+  node-1:
+    <<: *mysql-node
+    container_name: ${CLUSTER_ID:?error}-node-1
+    hostname: ${CLUSTER_ID:?error}-node-1
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root
+    volumes:
+      - node-data-1:/var/lib/mysql
+      - ./conf/node-1.cnf:/etc/mysql/conf.d/repl-node.cnf:ro
+      - ./scripts/node/:/scripts:ro
+    secrets:
+      - root
+  
+  node-2:
+    <<: *mysql-node
+    container_name: ${CLUSTER_ID:?error}-node-2
+    hostname: ${CLUSTER_ID:?error}-node-2
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root
+    volumes:
+      - node-data-2:/var/lib/mysql
+      - ./conf/node-2.cnf:/etc/mysql/conf.d/repl-node.cnf:ro
+      - ./scripts/node/:/scripts:ro
+    secrets:
+      - root
+
+  node-3:
+    <<: *mysql-node
+    container_name: ${CLUSTER_ID:?error}-node-3
+    hostname: ${CLUSTER_ID:?error}-node-3
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root
+    volumes:
+      - node-data-3:/var/lib/mysql
+      - ./conf/node-3.cnf:/etc/mysql/conf.d/repl-node.cnf:ro
+      - ./scripts/node/:/scripts:ro
+    secrets:
+      - root
+
+  router:
+    build:
+      context: .
+      dockerfile: ./router/Dockerfile
+    container_name: ${CLUSTER_ID:?error}-router
+    hostname: ${CLUSTER_ID:?error}-router
+    ports:
+      - 26446:6446 # R/W
+      - 26447:6447 # R/O
+      - 26450:6450 # R/W-splitting
+    environment:
+      BOOTSTRAP_MYSQL_HOST: ${CLUSTER_ID:?error}-node-1
+      BOOTSTRAP_MYSQL_PORT: 3306
+      BOOTSTRAP_MYSQL_USER: root
+      BOOTSTRAP_MYSQL_PASSWORD_FILE: /run/secrets/root
+    volumes:
+      - router-data:/var/lib/mysqlrouter
+    secrets:
+      - root
+
+secrets:
+  root:
+    file: secrets/db/root/pass.txt
+
+networks:
+  default:
+    name: ${CLUSTER_ID:?error}
+    driver: bridge
+
+volumes:
+  node-data-1: *vol-data
+  node-data-2: *vol-data
+  node-data-3: *vol-data
+  router-data: *vol-data

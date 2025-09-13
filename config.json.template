@@ -1,0 +1,7 @@
+{
+    "cluster": "main",
+    "passwords": {
+        "repl": "repl",
+        "root": "root"
+    }
+}

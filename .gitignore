@@ -1,0 +1,4 @@
+conf/*.cnf
+pass.txt
+config.json
+.env
